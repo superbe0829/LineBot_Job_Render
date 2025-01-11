@@ -42,9 +42,9 @@ def fetch_job_events():
     options.add_argument( "--disable-gpu" )
     
     # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-    # service = ChromeService(ChromeDriverManager().install()) 
-    # driver = webdriver.Chrome(service=service, options=options)
-    driver = webdriver.Chrome(options=options)
+    service = ChromeService(ChromeDriverManager().install()) 
+    driver = webdriver.Chrome(service=service, options=options)
+    # driver = webdriver.Chrome(options=options)
 
     driver.implicitly_wait(10)
     url = "https://ilabor.ntpc.gov.tw/cloud/GoodJob/activities"
