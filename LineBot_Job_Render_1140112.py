@@ -20,9 +20,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-options = Options() 
-options.add_argument( "--headless=new" )  # 設定headless Selenium
-options.add_argument( "--disable-gpu" )
+
 
 # 初始化 Flask 應用程式
 app = Flask(__name__)
@@ -39,6 +37,10 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 # 爬取最新徵才活動資料（使用 headless Selenium，瀏覽器在背景執行）
 def fetch_job_events():
+    options = Options() 
+    options.add_argument( "--headless=new" )  # 設定headless Selenium
+    options.add_argument( "--disable-gpu" )
+    
     # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
     service = ChromeService(ChromeDriverManager().install()) 
     driver = webdriver.Chrome(service=service, options=options)
