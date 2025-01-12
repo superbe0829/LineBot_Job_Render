@@ -110,15 +110,30 @@ def fetch_service_locations():
         return []
 
 # Line Webhook
-@app.route("/callback", methods=["POST"])
+# @app.route("/callback", methods=["POST"])
+# def callback():
+    # signature = request.headers["X-Line-Signature"]
+    # body = request.get_data(as_text=True)
+    # try:
+    #     line_handler.handle(body, signature)
+    # except InvalidSignatureError:
+    #     abort(400)
+    # return "OK"
+@app.route('/callback', methods=['GET', 'POST', 'HEAD'])
 def callback():
-    signature = request.headers["X-Line-Signature"]
-    body = request.get_data(as_text=True)
-    try:
+    if request.method == 'HEAD':
+        # 返回空的 200 OK 回應（回應UptimeRobot每5分鐘的請求）
+        return '', 200
+    elif request.method == 'GET':
+        return 'OK', 300
+    elif request.method == 'POST':
+        # 處理 Line Bot 的訊息
+        body = request.get_data(as_text=True)
+        signature = request.headers.get('X-Line-Signature', '')
         line_handler.handle(body, signature)
-    except InvalidSignatureError:
-        abort(400)
-    return "OK"
+        return 'OK', 400
+
+
 
 # 處理 Line 訊息
 @line_handler.add(MessageEvent, message=TextMessage)
