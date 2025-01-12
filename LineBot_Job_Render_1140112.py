@@ -32,7 +32,7 @@ if not LINE_CHANNEL_ACCESS_TOKEN or not LINE_CHANNEL_SECRET:
     raise EnvironmentError("請設定 LINE_CHANNEL_ACCESS_TOKEN 和 LINE_CHANNEL_SECRET 環境變數。")
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(LINE_CHANNEL_SECRET)
+line_handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 # 爬取最新徵才活動資料（使用 headless Selenium，瀏覽器在背景執行）
 def fetch_job_events():
@@ -98,13 +98,13 @@ def callback():
     signature = request.headers["X-Line-Signature"]
     body = request.get_data(as_text=True)
     try:
-        handler.handle(body, signature)
+        line_handler.handle(body, signature)
     except InvalidSignatureError:
         abort(400)
     return "OK"
 
 # 處理 Line 訊息
-@handler.add(MessageEvent, message=TextMessage)
+@line_handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text
     if "@徵才活動" in user_message:
