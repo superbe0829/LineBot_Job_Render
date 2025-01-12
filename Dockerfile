@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     unzip \
+    ncurses-base \  # 解決 tput 錯誤的依賴
     && rm -rf /var/lib/apt/lists/*
 
 # 複製安裝 Chrome 的腳本
@@ -21,6 +22,7 @@ RUN wget -P /usr/bin https://chromedriver.storage.googleapis.com/114.0.5735.90/c
     rm /usr/bin/chromedriver_linux64.zip
 
 # 設置 Chrome 路徑到環境變數
+ENV CHROME_BIN=/opt/render/project/.render/chrome/opt/google/chrome/google-chrome
 ENV PATH="/opt/render/project/.render/chrome/opt/google/chrome:${PATH}"
 
 # 設定工作目錄
@@ -34,4 +36,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 指定啟動命令
-CMD ["python", "LineBot_Job_Render_1140112.py"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "LineBot_Job_Render_1140112:app"]
