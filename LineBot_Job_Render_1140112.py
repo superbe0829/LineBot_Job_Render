@@ -41,10 +41,14 @@ def fetch_job_events():
     options.add_argument( "--headless=new" )  # 設定headless Selenium
     options.add_argument( "--disable-gpu" )
     
-    # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-    service = ChromeService(ChromeDriverManager().install()) 
+    # # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+    # service = ChromeService(ChromeDriverManager().install()) 
+    # driver = webdriver.Chrome(service=service, options=options)
+    
+    options.binary_location = "/usr/bin/google-chrome"
+    service = ChromeService(executable_path="/usr/bin/chromedriver")
     driver = webdriver.Chrome(service=service, options=options)
-    # driver = webdriver.Chrome(options=options)
+    
 
     driver.implicitly_wait(10)
     url = "https://ilabor.ntpc.gov.tw/cloud/GoodJob/activities"
