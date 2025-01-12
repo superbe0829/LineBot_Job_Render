@@ -237,8 +237,8 @@ def process_request(user_id, user_message):
             line_bot_api.push_message(
                 user_id,
                 ImageSendMessage(
-                    original_content_url="https://your-image-host.com/original.jpg",
-                    preview_image_url="https://your-image-host.com/preview.jpg",
+                    original_content_url = "https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
+                    preview_image_url = "https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
                 ),
             )
             return  # 提前結束函數，避免後續執行
