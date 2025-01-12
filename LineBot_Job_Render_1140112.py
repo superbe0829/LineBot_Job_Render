@@ -21,6 +21,17 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
+# Set up the Selenium WebDriver
+options = webdriver.ChromeOptions()
+options.add_argument('--no-sandbox')
+options.add_argument('--headless')
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--disable-extensions')
+options.add_argument('--disable-gpu')
+# options.add_argument('--user-agent={}'.format(random.choice(list(self.user_agents))))
+
+
 # 初始化 Flask 應用程式
 app = Flask(__name__)
 
@@ -38,9 +49,9 @@ line_handler = WebhookHandler(LINE_CHANNEL_SECRET)
 def fetch_job_events():
     
     print('進入fetch_job_events函式…')
-    options = Options() 
-    options.add_argument( "--headless=new" )  # 設定headless Selenium
-    options.add_argument( "--disable-gpu" )
+    # options = Options() 
+    # options.add_argument( "--headless=new" )  # 設定headless Selenium
+    # options.add_argument( "--disable-gpu" )
     
     # # # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
     # # service = ChromeService(ChromeDriverManager().install()) 
@@ -51,9 +62,11 @@ def fetch_job_events():
     # service = ChromeService(executable_path="/usr/bin/chromedriver")
     # driver = webdriver.Chrome(service=service, options=options)
     
-    service = ChromeService(executable_path='/opt/render/.cache/selenium/chromedriver')
-    driver = webdriver.Chrome(service=service, options=options)
+    # service = ChromeService(executable_path='/opt/render/.cache/selenium/chromedriver')
+    # driver = webdriver.Chrome(service=service, options=options)
 
+    driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(90)
     
     driver.implicitly_wait(10)
     url = "https://ilabor.ntpc.gov.tw/cloud/GoodJob/activities"
