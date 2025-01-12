@@ -14,7 +14,9 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add
     apt-get update && apt-get install -y google-chrome-stable
 
 # 安裝 ChromeDriver
-RUN wget -q "https://chromedriver.storage.googleapis.com/$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip" -O /tmp/chromedriver.zip && \
+RUN CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9.]+') && \
+    CHROMEDRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}") && \
+    wget -q "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -O /tmp/chromedriver.zip && \
     unzip /tmp/chromedriver.zip -d /usr/bin/ && \
     rm /tmp/chromedriver.zip
 
@@ -32,5 +34,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 複製專案檔案到容器中
 COPY . .
 
-# 執行應用程式
+# 啟動應用程式
 CMD ["python", "LineBot_Job_Render_1140112.py"]
