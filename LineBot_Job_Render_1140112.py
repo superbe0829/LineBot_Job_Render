@@ -21,7 +21,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-
 # 初始化 Flask 應用程式
 app = Flask(__name__)
 
@@ -37,6 +36,8 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 # 爬取最新徵才活動資料（使用 headless Selenium，瀏覽器在背景執行）
 def fetch_job_events():
+    
+    print('進入fetch_job_events函式…')
     options = Options() 
     options.add_argument( "--headless=new" )  # 設定headless Selenium
     options.add_argument( "--disable-gpu" )
@@ -106,7 +107,6 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text
-
     if "@徵才活動" in user_message:
         print('準備從網路抓取徵才活動…')
         events = fetch_job_events()
