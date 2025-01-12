@@ -8,18 +8,22 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# 安裝 Google Chrome
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable
+# 複製 install_chrome.sh 腳本
+COPY install_chrome.sh /install_chrome.sh
+
+# 執行 install_chrome.sh 腳本來安裝 Chrome
+RUN chmod +x /install_chrome.sh && /install_chrome.sh
 
 # 安裝 Python 套件
 WORKDIR /app
 COPY requirements.txt . 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 複製專案程式碼
+# 複製專案
 COPY . .
 
+# 設定環境變數（如果需要）
+ENV PATH="${PATH}:/opt/render/project/.render/chrome/opt/google/chrome"
+
 # 啟動應用程式
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "LineBot_Job_Render_1140112:app"]
+CMD ["gunicorn", "LineBot_Job_Render_1140112:app", "-w", "4", "-b", "0.0.0.0:8080"]
