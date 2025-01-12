@@ -8,31 +8,30 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# 安裝 Google Chrome
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable
+# 複製安裝 Chrome 的腳本
+COPY install_chrome.sh /app/install_chrome.sh
+
+# 執行安裝 Chrome 的腳本
+RUN chmod +x /app/install_chrome.sh && /app/install_chrome.sh
 
 # 安裝 ChromeDriver
-RUN CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9.]+') && \
-    CHROMEDRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}") && \
-    wget -q "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -O /tmp/chromedriver.zip && \
-    unzip /tmp/chromedriver.zip -d /usr/bin/ && \
-    rm /tmp/chromedriver.zip
+RUN wget -P /usr/bin https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip && \
+    unzip /usr/bin/chromedriver_linux64.zip -d /usr/bin && \
+    chmod +x /usr/bin/chromedriver && \
+    rm /usr/bin/chromedriver_linux64.zip
 
-# 設定 ChromeDriver 和 Chrome 路徑
-ENV CHROME_BIN=/usr/bin/google-chrome
-ENV CHROMEDRIVER=/usr/bin/chromedriver
+# 設置 Chrome 路徑到環境變數
+ENV PATH="/opt/render/project/.render/chrome/opt/google/chrome:${PATH}"
 
 # 設定工作目錄
 WORKDIR /app
 
-# 複製需求檔案並安裝 Python 套件
+# 安裝 Python 套件
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 複製專案檔案到容器中
+# 複製專案內容
 COPY . .
 
-# 啟動應用程式
+# 指定啟動命令
 CMD ["python", "LineBot_Job_Render_1140112.py"]
