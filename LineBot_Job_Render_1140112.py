@@ -71,15 +71,22 @@ def fetch_job_events():
     
     formatted_events = []
     for idx, event in enumerate(events, start=1):
-        date = event.get_attribute("data-date")
+        # date = event.get_attribute("data-date")
+        # name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
+        # link = event.get_attribute("href")
+        # # formatted_events.append(f"{idx}. {date}：{name}\n詳細資訊：{link}")
+        # formatted_events.append(f"{idx}. {name}\n，詳細資訊：{link}")
         name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
         link = event.get_attribute("href")
-        # formatted_events.append(f"{idx}. {date}：{name}\n詳細資訊：{link}")
-        formatted_events.append(f"{idx}. {name}\n，詳細資訊：{link}")
+        formatted_events.append({
+            "index": idx,
+            "name": name,
+            "link": link,
+        })
     
-    driver.quit()
     return formatted_events
-
+    driver.quit()
+    
 # 爬取服務據點清單（使用Request）
 def fetch_service_locations():
     base_url = "https://ilabor.ntpc.gov.tw"
@@ -207,10 +214,16 @@ def process_request(user_id, user_message):
         if "@徵才活動" in user_message:
             logging.info("準備從網路抓取徵才活動…")
             events = fetch_job_events()
-            reply_message = (
-                "以下是近期最新徵才活動：\n" + "\n\n".join([f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events])
-                if events else "抱歉，目前無法取得徵才活動資訊。"
-            )
+            # reply_message = (
+            #     "以下是近期最新徵才活動：\n" + "\n\n".join([f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events])
+            #     if events else "抱歉，目前無法取得徵才活動資訊。"
+            # )
+            if events:
+                reply_message = "以下是近期10場內最新徵才活動：\n" + "\n\n".join(
+                    [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events]
+                )
+            else:
+                reply_message = "抱歉，目前無法取得徵才活動資訊。"
 
         elif "@服務據點" in user_message:
             logging.info("準備從網路抓取服務據點…")
