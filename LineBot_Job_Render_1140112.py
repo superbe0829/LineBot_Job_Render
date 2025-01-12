@@ -108,6 +108,7 @@ def handle_message(event):
     user_message = event.message.text
 
     if "@徵才活動" in user_message:
+        print('準備從網路抓取徵才活動…')
         events = fetch_job_events()
         if events:
             reply_message = "以下是近期 10 場最新徵才活動：\n" + "\n\n".join(events)
@@ -116,6 +117,7 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
     elif "@服務據點" in user_message:
+        print('準備從網路抓取服務據點…')
         locations = fetch_service_locations()
         if locations:
             reply_message = "以下是新北市就業服務據點：\n" + "\n\n".join(locations)
@@ -124,6 +126,7 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
     elif "@人資宣導" in user_message:
+        print('準備傳送人資宣導…')
         message = ImageSendMessage(
             original_content_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
             preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
