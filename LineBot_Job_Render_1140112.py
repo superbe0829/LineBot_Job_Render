@@ -14,6 +14,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSend
 import requests
 from bs4 import BeautifulSoup
 import os  # 用於讀取環境變數
+import time # 時間模組
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -23,14 +24,13 @@ from selenium.webdriver.chrome.options import Options
 
 # Set up the Selenium WebDriver
 options = webdriver.ChromeOptions()
-options.add_argument('--no-sandbox')
-options.add_argument('--headless')
-options.add_argument('--ignore-certificate-errors')
-options.add_argument('--disable-dev-shm-usage')
-options.add_argument('--disable-extensions')
+# options.add_argument('--no-sandbox')
+options.add_argument('--headless') # 設定headless Selenium
+# options.add_argument('--ignore-certificate-errors')
+# options.add_argument('--disable-dev-shm-usage')
+# options.add_argument('--disable-extensions')
 options.add_argument('--disable-gpu')
 # options.add_argument('--user-agent={}'.format(random.choice(list(self.user_agents))))
-
 
 # 初始化 Flask 應用程式
 app = Flask(__name__)
@@ -49,22 +49,10 @@ line_handler = WebhookHandler(LINE_CHANNEL_SECRET)
 def fetch_job_events():
     
     print('進入fetch_job_events函式…')
-    # options = Options() 
-    # options.add_argument( "--headless=new" )  # 設定headless Selenium
-    # options.add_argument( "--disable-gpu" )
-    
-    # # # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-    # # service = ChromeService(ChromeDriverManager().install()) 
-    # # driver = webdriver.Chrome(service=service, options=options)
-    # driver = webdriver.Chrome(options=options)
-    
-    # options.binary_location = "/usr/bin/google-chrome"
-    # service = ChromeService(executable_path="/usr/bin/chromedriver")
+        
+    # # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+    # service = ChromeService(ChromeDriverManager().install()) 
     # driver = webdriver.Chrome(service=service, options=options)
-    
-    # service = ChromeService(executable_path='/opt/render/.cache/selenium/chromedriver')
-    # driver = webdriver.Chrome(service=service, options=options)
-
     driver = webdriver.Chrome(options=options)
     driver.set_page_load_timeout(90)
     
@@ -84,29 +72,48 @@ def fetch_job_events():
     driver.quit()
     return formatted_events
 
-# 爬取服務據點清單（使用 BeautifulSoup）
+# 爬取服務據點清單（使用Request）
 def fetch_service_locations():
     base_url = "https://ilabor.ntpc.gov.tw"
     url = f"{base_url}/browse/employment-service/employment-service-branch"
-
+    
     try:
+        # 發送 GET 請求取得網頁內容
         response = requests.get(url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
-        location_elements = soup.select("a.list-group-item")
+        response.raise_for_status()  # 檢查 HTTP 狀態碼
+        html_content = response.text
 
+        # 使用 BeautifulSoup 解析 HTML
+        soup = BeautifulSoup(html_content, "html.parser")
+        
+        # 抓取所有 <a> 標籤
+        location_elements = soup.find_all("a", class_="list-group-item")
         service_locations = []
+
         for element in location_elements:
-            name_tag = element.select_one(".tit-h4-b")
+            # 提取名稱
+            name_tag = element.find("p", class_="tit-h4-b")
             if name_tag and ("服務站" in name_tag.text or "服務台" in name_tag.text):
                 name = name_tag.text.strip()
-                relative_url = element.get("href")
+                # 提取相對 URL 並組合完整 URL
+                relative_url = element["href"]
                 full_url = f"{base_url}{relative_url}"
-                service_locations.append(f"{name}，詳細資訊：{full_url}")
+                # 添加名稱與連結
+                service_locations.append((name, full_url))
+        
+        # 去重處理
+        unique_locations = list(dict.fromkeys(service_locations))
 
-        return service_locations
+        # 加上序號與連結
+        numbered_locations = [
+            f"{idx + 1}. {name}，詳細資訊：{link}" 
+            for idx, (name, link) in enumerate(unique_locations)
+        ]
+
+        return numbered_locations
+
     except Exception as e:
-        print(f"fetch_service_locations 發生錯誤：{e}")
+        print(f"發生錯誤：{e}")
         return []
 
 # Line Webhook
@@ -134,18 +141,24 @@ def callback():
         return 'OK', 400
 
 
-
 # 處理 Line 訊息
 @line_handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text
+    
+    # 先回覆資料抓取中的訊息
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text="資料取得中，請稍候~"))
+    # 延遲一點時間，確保回覆訊息已送達用戶
+    time.sleep(1)
+    
     if "@徵才活動" in user_message:
         print('準備從網路抓取徵才活動…')
-        events = fetch_job_events()
-        if events:
-            reply_message = "以下是近期 10 場最新徵才活動：\n" + "\n\n".join(events)
-        else:
-            reply_message = "抱歉，目前無法取得徵才活動資訊。"
+        try:
+            events = fetch_job_events()
+            reply_message = "\n\n".join(events[:10])
+            reply_message = "以下是近期最新徵才活動：\n" + reply_message
+        except Exception as e:
+            reply_message = f"抱歉，目前無法提供資訊。\n錯誤：{e}"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
     elif "@服務據點" in user_message:
