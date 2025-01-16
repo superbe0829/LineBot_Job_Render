@@ -287,14 +287,15 @@ def process_request(user_id, user_message):
     try:
         if "@徵才活動" in user_message:
             logging.info("準備從網路抓取徵才活動…")
-            events = fetch_job_events()
+            # events = fetch_job_events()
+            events = fetch_job_events(min_events=10)  # 確保至少抓取 10 筆資料
             # reply_message = (
             #     "以下是近期最新徵才活動：\n" + "\n\n".join([f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events])
             #     if events else "抱歉，目前無法取得徵才活動資訊。"
             # )
             if events:
                 reply_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
-                    [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events]
+                    [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events[:10]]  # 僅取前 10 筆
                 )
             else:
                 reply_message = "抱歉，目前無法取得徵才活動資訊。"
