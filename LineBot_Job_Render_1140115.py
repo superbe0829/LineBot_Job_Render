@@ -511,7 +511,10 @@ def handle_message(event):
     except Exception as e:
         logging.error(f"處理請求時發生錯誤: {e}")
         error_message = TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！")
-        line_bot_api.reply_message(event.reply_token, error_message)
+        # line_bot_api.reply_message(event.reply_token, error_message)
+        
+        # 使用 push_message 發送結果
+        line_bot_api.push_message(user_id, TextSendMessage(text=result_message))
 
 
 # 啟動伺服器
