@@ -463,13 +463,16 @@ def callback():
 # 處理 Line 訊息
 @line_handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    user_message = event.message.text.strip().lower()
-    reply_token = event.reply_token  # 儲存 reply_token
+    user_id = event.source.user_id
+    user_message = event.message.text.strip().lower() 
 
     try:
         # 根據訊息內容進行處理
         if "@徵才活動" in user_message:
             logging.info("準備從網路抓取徵才活動…")
+            # 先回覆「資料抓取中，請稍候~」
+            line_bot_api.reply_message(event.reply_token,TextSendMessage(text="資料抓取中，請稍候~"))
+            
             events = fetch_job_events(min_events=10)  # 確保至少抓取 10 筆資料
             if events:
                 result_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
@@ -478,12 +481,16 @@ def handle_message(event):
             else:
                 result_message = "抱歉，目前無法取得徵才活動資訊。"
             result_message = TextSendMessage(text=result_message)  # 確保回覆的是 TextSendMessage 物件
+            # 使用 push_message 發送結果
+            line_bot_api.push_message(user_id, TextSendMessage(text=result_message))
 
         elif "@服務據點" in user_message:
             logging.info("準備從網路抓取服務據點…")
             locations = fetch_service_locations()
             result_message = "以下是新北市就業服務據點：\n" + "\n\n".join(locations) if locations else "目前無法取得服務據點資訊。"
             result_message = TextSendMessage(text=result_message)  # 確保回覆的是 TextSendMessage 物件
+            # 使用 reply_message 回覆結果
+            line_bot_api.reply_message(event.reply_token, result_message)
 
         elif "@人資宣導" in user_message:
             logging.info("準備傳送人資宣導…")
@@ -492,12 +499,14 @@ def handle_message(event):
                 preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
             )
             result_message = [TextSendMessage(text="人資宣導資料如下："), image_message]  # 這裡是兩個訊息，應該用列表
+            # 使用 reply_message 回覆結果
+            line_bot_api.reply_message(event.reply_token, result_message)
 
         else:
             result_message = TextSendMessage(text="請點擊下方服務快捷鍵取得所需資訊！")  # 預設回應
 
-        # 回覆結果
-        line_bot_api.reply_message(reply_token, result_message)
+        # # 回覆結果
+        # line_bot_api.reply_message(reply_token, result_message)
 
     except Exception as e:
         logging.error(f"處理請求時發生錯誤: {e}")
