@@ -527,7 +527,7 @@ def process_request(user_id, user_message):
             events = fetch_job_events()
             if events:
                 reply_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
-                    [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events]
+                    [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events[:10]]
                 )
             else:
                 reply_message = "抱歉，目前無法取得徵才活動資訊。"
