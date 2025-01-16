@@ -205,19 +205,28 @@ def handle_message(event):
 
         elif "@人資宣導" in user_message:
             logging.info("準備傳送人資宣導…")
-            image_message = ImageSendMessage(
+            # image_message = ImageSendMessage(
+            #     original_content_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
+            #     preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
+            # )
+            # result_message = [TextSendMessage(text="人資宣導資料如下："), image_message]  # 這裡是兩個訊息，應該用列表
+            
+            image_message1 = ImageSendMessage(
                 original_content_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
                 preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
             )
-            result_message = [TextSendMessage(text="人資宣導資料如下："), image_message]  # 這裡是兩個訊息，應該用列表
+            image_message2 = ImageSendMessage(
+                original_content_url="https://drive.google.com/uc?export=view&id=1ZxbpiEbwMiZ1vmMN8szHZj8C119AtQVZ",
+                preview_image_url="https://drive.google.com/uc?export=view&id=1ZxbpiEbwMiZ1vmMN8szHZj8C119AtQVZ"
+            )
+            
+            result_message = [TextSendMessage(text="人資宣導資料如下："), image_message1, image_message2]  # 這裡是多個訊息，應該用列表
+            
             # 使用 reply_message 回覆結果
             line_bot_api.reply_message(event.reply_token, result_message)
 
         else:
             result_message = TextSendMessage(text="請點擊下方服務快捷鍵取得所需資訊！")  # 預設回應
-
-        # # 回覆結果
-        # line_bot_api.reply_message(reply_token, result_message)
 
     except Exception as e:
         logging.error(f"處理請求時發生錯誤: {e}")
