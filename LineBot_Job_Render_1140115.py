@@ -272,16 +272,47 @@ def callback():
 #         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
 # # 處理 Line 訊息
+# @line_handler.add(MessageEvent, message=TextMessage)
+# def handle_message(event):
+#     user_message = event.message.text.strip().lower()
+
+#     # 回覆「資料抓取中，請稍候~」
+#     reply_message = "資料抓取中，請稍候~"
+#     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+
+#     # 另起線程處理耗時的邏輯
+#     threading.Thread(target=process_request, args=(event.source.user_id, user_message)).start()
+
+# 處理 Line 訊息
 @line_handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text.strip().lower()
 
-    # 回覆「資料抓取中，請稍候~」
+    # 立即回覆「資料抓取中，請稍候~」訊息，這是同步回應，不會使用推播訊息
     reply_message = "資料抓取中，請稍候~"
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
-    # 另起線程處理耗時的邏輯
-    threading.Thread(target=process_request, args=(event.source.user_id, user_message)).start()
+    # 另起線程處理耗時的邏輯，這裡避免使用推播訊息，改為回覆訊息
+    def thread_target():
+        try:
+            # 當背景任務處理完畢後，回覆結果給使用者
+            events = process_request(event.source.user_id, user_message)
+            if events:
+                result_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
+                    [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events[:10]]
+                )
+            else:
+                result_message = "抱歉，目前無法取得徵才活動資訊。"
+            
+            # 在處理完資料後，回覆最終結果給使用者
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=result_message))
+
+        except Exception as e:
+            logging.error(f"處理線程時發生錯誤: {e}")
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！"))
+    
+    threading.Thread(target=thread_target).start()
+
 
 def process_request(user_id, user_message):
     try:
