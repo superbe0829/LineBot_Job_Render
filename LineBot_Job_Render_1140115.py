@@ -66,26 +66,73 @@ def fetch_job_events():
     
     driver.implicitly_wait(10)
     url = "https://ilabor.ntpc.gov.tw/cloud/GoodJob/activities"
-    driver.get(url)
-    events = driver.find_elements(By.CLASS_NAME, "event-item")
+    
+    # driver.get(url)
+    # events = driver.find_elements(By.CLASS_NAME, "event-item")
+    
+    # formatted_events = []
+    # for idx, event in enumerate(events, start=1):
+    #     # date = event.get_attribute("data-date")
+    #     # name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
+    #     # link = event.get_attribute("href")
+    #     # # formatted_events.append(f"{idx}. {date}：{name}\n詳細資訊：{link}")
+    #     # formatted_events.append(f"{idx}. {name}\n，詳細資訊：{link}")
+    #     name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
+    #     link = event.get_attribute("href")
+    #     formatted_events.append({
+    #         "index": idx,
+    #         "name": name,
+    #         "link": link,
+    #     })
+    
+    # driver.quit()
+    # return formatted_events
     
     formatted_events = []
-    for idx, event in enumerate(events, start=1):
-        # date = event.get_attribute("data-date")
-        # name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
-        # link = event.get_attribute("href")
-        # # formatted_events.append(f"{idx}. {date}：{name}\n詳細資訊：{link}")
-        # formatted_events.append(f"{idx}. {name}\n，詳細資訊：{link}")
-        name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
-        link = event.get_attribute("href")
-        formatted_events.append({
-            "index": idx,
-            "name": name,
-            "link": link,
-        })
-    
+    current_index = 1  # 初始化編號
+    try:
+        # 開啟目標網頁
+        driver.get(url)
+
+        # 定義一個函式用來抓取單個月的活動資料
+        def scrape_events(start_index):
+            events = driver.find_elements(By.CLASS_NAME, "event-item")
+            month_events = []
+            for idx, event in enumerate(events, start=start_index):
+                try:
+                    name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
+                    link = event.get_attribute("href")
+                    month_events.append({
+                        "index": idx,
+                        "name": name,
+                        "link": link,
+                    })
+                except Exception as e:
+                    print(f"處理事件時發生錯誤：{e}")
+            return month_events
+
+        # 抓取本月份的資料
+        formatted_events.extend(scrape_events(current_index))
+        current_index += len(formatted_events)  # 更新編號
+
+        # 點擊「下個月」按鈕並抓取資料
+        try:
+            next_button = driver.find_element(By.CLASS_NAME, "clndr-next-button")
+            next_button.click()
+            time.sleep(1)  # 等待頁面更新
+
+            # 抓取下個月的資料
+            formatted_events.extend(scrape_events(current_index))
+        except Exception as e:
+            print(f"無法點擊下個月按鈕或抓取資料：{e}")
+
+    except Exception as e:
+        print(f"抓取資料時發生錯誤：{e}")
+    finally:
+        driver.quit()
+
     return formatted_events
-    driver.quit()
+    
     
 # 爬取服務據點清單（使用Request）
 def fetch_service_locations():
