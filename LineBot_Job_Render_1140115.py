@@ -477,11 +477,13 @@ def handle_message(event):
                 )
             else:
                 result_message = "抱歉，目前無法取得徵才活動資訊。"
+            result_message = TextSendMessage(text=result_message)  # 確保回覆的是 TextSendMessage 物件
 
         elif "@服務據點" in user_message:
             logging.info("準備從網路抓取服務據點…")
             locations = fetch_service_locations()
             result_message = "以下是新北市就業服務據點：\n" + "\n\n".join(locations) if locations else "目前無法取得服務據點資訊。"
+            result_message = TextSendMessage(text=result_message)  # 確保回覆的是 TextSendMessage 物件
 
         elif "@人資宣導" in user_message:
             logging.info("準備傳送人資宣導…")
@@ -489,17 +491,18 @@ def handle_message(event):
                 original_content_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
                 preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
             )
-            result_message = [TextSendMessage(text="人資宣導資料如下："), image_message]
+            result_message = [TextSendMessage(text="人資宣導資料如下："), image_message]  # 這裡是兩個訊息，應該用列表
 
         else:
-            result_message = "請點擊下方服務快捷鍵取得所需資訊！"
+            result_message = TextSendMessage(text="請點擊下方服務快捷鍵取得所需資訊！")  # 預設回應
 
         # 回覆結果
         line_bot_api.reply_message(reply_token, result_message)
 
     except Exception as e:
         logging.error(f"處理請求時發生錯誤: {e}")
-        line_bot_api.reply_message(reply_token, TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！"))
+        error_message = TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！")
+        line_bot_api.reply_message(reply_token, error_message)
 
 
 # 啟動伺服器
