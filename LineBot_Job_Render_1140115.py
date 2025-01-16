@@ -10,6 +10,7 @@ print()
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
+from linebot.exceptions import LineBotApiError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage
 import requests
 from bs4 import BeautifulSoup
@@ -229,7 +230,6 @@ def callback():
         line_handler.handle(body, signature)
         return 'OK', 400
 
-
 # # 處理 Line 訊息
 # @line_handler.add(MessageEvent, message=TextMessage)
 # def handle_message(event):
@@ -283,53 +283,145 @@ def callback():
 #     # 另起線程處理耗時的邏輯
 #     threading.Thread(target=process_request, args=(event.source.user_id, user_message)).start()
 
+# # 處理 Line 訊息
+# @line_handler.add(MessageEvent, message=TextMessage)
+# def handle_message(event):
+#     user_message = event.message.text.strip().lower()
+
+#     # 回覆「資料抓取中，請稍候~」訊息
+#     reply_message = "資料抓取中，請稍候~"
+#     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+
+#     # 儲存 reply_token 並在異步處理中使用
+#     reply_token = event.reply_token
+
+#     # 另起線程處理耗時的邏輯
+#     def thread_target():
+#         try:
+#             # 進行資料處理
+#             events = process_request(event.source.user_id, user_message)
+
+#             # 回覆最終結果
+#             if events:
+#                 result_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
+#                     [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events[:10]]
+#                 )
+#             else:
+#                 result_message = "抱歉，目前無法取得徵才活動資訊。"
+
+#             # 確保使用最初的 reply_token 來回覆最終結果
+#             line_bot_api.reply_message(reply_token, TextSendMessage(text=result_message))
+
+#         except Exception as e:
+#             logging.error(f"處理線程時發生錯誤: {e}")
+#             line_bot_api.reply_message(reply_token, TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！"))
+    
+#     threading.Thread(target=thread_target).start()
+
 # 處理 Line 訊息
 @line_handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text.strip().lower()
 
-    # 回覆「資料抓取中，請稍候~」訊息
-    reply_message = "資料抓取中，請稍候~"
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+    # 根據用戶輸入的訊息判斷是否回覆「資料抓取中，請稍候~」
+    if "@徵才活動" in user_message or "@服務據點" in user_message or "@人資宣導" in user_message:
+        # 回覆「資料抓取中，請稍候~」訊息
+        reply_message = "資料抓取中，請稍候~"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
-    # 儲存 reply_token 並在異步處理中使用
-    reply_token = event.reply_token
+        # 儲存 reply_token 並在異步處理中使用
+        reply_token = event.reply_token
 
-    # 另起線程處理耗時的邏輯
-    def thread_target():
-        try:
-            # 進行資料處理
-            events = process_request(event.source.user_id, user_message)
+        # 另起線程處理耗時的邏輯
+        def thread_target():
+            try:
+                # 進行資料處理
+                events = process_request(event.source.user_id, user_message)
 
-            # 回覆最終結果
-            if events:
-                result_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
-                    [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events[:10]]
-                )
-            else:
-                result_message = "抱歉，目前無法取得徵才活動資訊。"
+                # 回覆最終結果（若有）
+                if events:
+                    result_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
+                        [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events[:10]]
+                    )
+                else:
+                    result_message = "抱歉，目前無法取得徵才活動資訊。"
 
-            # 確保使用最初的 reply_token 來回覆最終結果
-            line_bot_api.reply_message(reply_token, TextSendMessage(text=result_message))
+                # 延遲處理，避免 reply_token 過期
+                time.sleep(3)  # 延遲 3 秒（可以根據實際情況調整）
 
-        except Exception as e:
-            logging.error(f"處理線程時發生錯誤: {e}")
-            line_bot_api.reply_message(reply_token, TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！"))
-    
-    threading.Thread(target=thread_target).start()
+                # 確保使用最初的 reply_token 來回覆最終結果
+                try:
+                    line_bot_api.reply_message(reply_token, TextSendMessage(text=result_message))
+                except LineBotApiError as e:
+                    logging.error(f"回覆訊息失敗，原因: {e}")
+
+            except Exception as e:
+                logging.error(f"處理線程時發生錯誤: {e}")
+                try:
+                    line_bot_api.reply_message(reply_token, TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！"))
+                except LineBotApiError as e:
+                    logging.error(f"回覆錯誤訊息失敗，原因: {e}")
+        
+        threading.Thread(target=thread_target).start()
+
+    else:
+        # 若用戶輸入的訊息不包含預期的關鍵字，則回覆其他訊息
+        reply_message = "請點擊下方服務快捷鍵取得所需資訊！"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
 
+
+# def process_request(user_id, user_message):
+#     try:
+#         if "@徵才活動" in user_message:
+#             logging.info("準備從網路抓取徵才活動…")
+#             # events = fetch_job_events()
+#             events = fetch_job_events(min_events=10)  # 確保至少抓取 10 筆資料
+#             # reply_message = (
+#             #     "以下是近期最新徵才活動：\n" + "\n\n".join([f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events])
+#             #     if events else "抱歉，目前無法取得徵才活動資訊。"
+#             # )
+#             if events:
+#                 reply_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
+#                     [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events[:10]]  # 僅取前 10 筆
+#                 )
+#             else:
+#                 reply_message = "抱歉，目前無法取得徵才活動資訊。"
+
+#         elif "@服務據點" in user_message:
+#             logging.info("準備從網路抓取服務據點…")
+#             locations = fetch_service_locations()
+#             reply_message = (
+#                 "以下是新北市就業服務據點：\n" + "\n\n".join(locations) if locations else "目前無法取得服務據點資訊。"
+#             )
+
+#         elif "@人資宣導" in user_message:
+#             logging.info("準備傳送人資宣導…")
+#             line_bot_api.push_message(
+#                 user_id,
+#                 ImageSendMessage(
+#                     original_content_url = "https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
+#                     preview_image_url = "https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
+#                 ),
+#             )
+#             return  # 提前結束函數，避免後續執行
+
+#         else:
+#             reply_message = "請點擊下方服務快捷鍵取得所需資訊！"
+
+#         # 發送推播訊息
+#         line_bot_api.push_message(user_id, TextSendMessage(text=reply_message))
+
+#     except Exception as e:
+#         logging.error(f"處理請求時發生錯誤: {e}")
+#         line_bot_api.push_message(user_id, TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！"))
 
 def process_request(user_id, user_message):
     try:
+        # 檢查訊息內容並進行對應處理
         if "@徵才活動" in user_message:
             logging.info("準備從網路抓取徵才活動…")
-            # events = fetch_job_events()
             events = fetch_job_events(min_events=10)  # 確保至少抓取 10 筆資料
-            # reply_message = (
-            #     "以下是近期最新徵才活動：\n" + "\n\n".join([f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events])
-            #     if events else "抱歉，目前無法取得徵才活動資訊。"
-            # )
             if events:
                 reply_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
                     [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events[:10]]  # 僅取前 10 筆
@@ -346,24 +438,27 @@ def process_request(user_id, user_message):
 
         elif "@人資宣導" in user_message:
             logging.info("準備傳送人資宣導…")
-            line_bot_api.push_message(
-                user_id,
-                ImageSendMessage(
-                    original_content_url = "https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
-                    preview_image_url = "https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
-                ),
+            reply_message = "請查看下方人資宣導圖片。"
+
+            # 傳送圖片連結（若有需要）
+            image_message = ImageSendMessage(
+                original_content_url = "https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
+                preview_image_url = "https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
             )
+            
+            # 使用 reply_message 方式回覆圖片
+            line_bot_api.reply_message(user_id, [TextSendMessage(text=reply_message), image_message])
             return  # 提前結束函數，避免後續執行
 
         else:
             reply_message = "請點擊下方服務快捷鍵取得所需資訊！"
 
-        # 發送推播訊息
-        line_bot_api.push_message(user_id, TextSendMessage(text=reply_message))
+        # 使用 reply_message 回覆資料
+        line_bot_api.reply_message(user_id, TextSendMessage(text=reply_message))
 
     except Exception as e:
         logging.error(f"處理請求時發生錯誤: {e}")
-        line_bot_api.push_message(user_id, TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！"))
+        line_bot_api.reply_message(user_id, TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！"))
 
 
 # 啟動伺服器
