@@ -524,7 +524,6 @@ def handle_message(event):
 def process_request(user_id, user_message):
     try:
         if "@徵才活動" in user_message:
-            # logging.info("準備從網路抓取徵才活動…")
             events = fetch_job_events()
             if events:
                 reply_message = "以下是近期10場最新徵才活動：\n" + "\n\n".join(
@@ -532,8 +531,6 @@ def process_request(user_id, user_message):
                 )
             else:
                 reply_message = "抱歉，目前無法取得徵才活動資訊。"
-            return  # 提前結束函數，避免後續執行
-
         else:
             reply_message = "請點擊下方服務快捷鍵取得所需資訊！"
 
@@ -543,6 +540,7 @@ def process_request(user_id, user_message):
     except Exception as e:
         logging.error(f"處理請求時發生錯誤: {e}")
         line_bot_api.push_message(user_id, TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！"))
+
 
 # 啟動伺服器
 if __name__ == "__main__":
