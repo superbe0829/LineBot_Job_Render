@@ -215,10 +215,10 @@ def handle_message(event):
                 original_content_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
                 preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
             )
-            image_message2 = ImageSendMessage(
-                original_content_url="https://drive.google.com/uc?export=view&id=1ZxbpiEbwMiZ1vmMN8szHZj8C119AtQVZ",
-                preview_image_url="https://drive.google.com/uc?export=view&id=1ZxbpiEbwMiZ1vmMN8szHZj8C119AtQVZ"
-            )
+            # image_message2 = ImageSendMessage(
+            #     original_content_url="https://drive.google.com/uc?export=view&id=1ZxbpiEbwMiZ1vmMN8szHZj8C119AtQVZ",
+            #     preview_image_url="https://drive.google.com/uc?export=view&id=1ZxbpiEbwMiZ1vmMN8szHZj8C119AtQVZ"
+            # )
             video_message = VideoSendMessage(
                 original_content_url="https://drive.google.com/uc?export=view&id=1ObbuUjvqK8lDVsymER0vYfyVZl049yee",  # 替換為你的影片 URL
                 preview_image_url="https://drive.google.com/uc?export=view&id=1Z5HwsY-nrzu6Fn6_CcEsDsIrYVhylQQf"  # 必須提供
@@ -226,13 +226,14 @@ def handle_message(event):
 
             # result_message = [TextSendMessage(text="人資宣導資料如下："), image_message1, image_message2]  # 這裡是多個訊息，應該用列表
             # result_message = [TextSendMessage(text="人資宣導資料如下："), image_message1, video_message]  # 這裡是多個訊息，應該用列表
-            result_message = [TextSendMessage(text="以下是DM宣導："), image_message1, image_message2, TextSendMessage(text="以下是短片宣導："), video_message]  # 這裡是多個訊息，應該用列表
+            # result_message = [TextSendMessage(text="以下是DM宣導："), image_message1, image_message2, TextSendMessage(text="以下是短片宣導："), video_message]  # 這裡是多個訊息，應該用列表
+            result_message = [TextSendMessage(text="以下是DM宣導："), image_message1, TextSendMessage(text="以下是短片宣導："), video_message]  # 這裡是多個訊息，應該用列表
             
             # 使用 reply_message 回覆結果
             line_bot_api.reply_message(event.reply_token, result_message)
 
         else:
-            result_message = TextSendMessage(text="請點擊下方服務快捷鍵取得所需資訊！")  # 預設回應
+            result_message = TextSendMessage(text="您好，本服務是由系統自動回應，請點擊下方服務快捷鍵取得所需資訊！")  # 預設回應
             # 使用 reply_message 回覆結果
             line_bot_api.reply_message(event.reply_token, result_message)
 
