@@ -233,14 +233,17 @@ def handle_message(event):
 
         else:
             result_message = TextSendMessage(text="請點擊下方服務快捷鍵取得所需資訊！")  # 預設回應
+            # 使用 reply_message 回覆結果
+            line_bot_api.reply_message(event.reply_token, result_message)
 
     except Exception as e:
         logging.error(f"處理請求時發生錯誤: {e}")
         error_message = TextSendMessage(text="抱歉，系統發生錯誤，請稍後再試！")
-        # line_bot_api.reply_message(event.reply_token, error_message)
+        # 使用 reply_message 回覆結果
+        line_bot_api.reply_message(event.reply_token, error_message)
         
         # 使用 push_message 發送結果
-        line_bot_api.push_message(user_id, TextSendMessage(text=error_message))
+        # line_bot_api.push_message(user_id, TextSendMessage(text=error_message))
 
 def process_request(user_id, user_message):
     try:
