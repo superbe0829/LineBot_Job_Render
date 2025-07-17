@@ -187,7 +187,7 @@ def callback():
 @line_handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_id = event.source.user_id
-    user_message = event.message.text.strip().lower() 
+    user_message = event.message.text.strip().lower() #去餘多餘空白，且英文小寫
 
     try:
         # 根據訊息內容進行處理
@@ -253,7 +253,7 @@ def handle_message(event):
             line_bot_api.reply_message(event.reply_token, message)
         
         # 處理使用者選擇 DM宣導 或 短片宣導
-        elif "@DM宣導" in user_message:
+        elif "@dm宣導" in user_message:
             logging.info("使用者選擇 DM 宣導")
             
             # 傳送 DM 宣導的圖片
