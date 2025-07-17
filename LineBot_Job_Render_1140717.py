@@ -235,10 +235,13 @@ def handle_message(event):
             # 參考來源：https://medium.com/@yula_chen/linebot%E5%AF%A6%E4%BD%9C-%E6%A9%9F%E5%99%A8%E4%BA%BA%E5%82%B3%E9%80%81%E7%9A%84%E8%A8%8A%E6%81%AF%E7%A8%AE%E9%A1%9E%E5%A4%A7%E5%BD%99%E6%95%B4-89201c2167fd#dbce
             quick_reply_buttons = [
                 QuickReplyButton(
-                    action=MessageAction(label="DM宣導", text="@DM宣導")
+                    action=MessageAction(label="新北市DM", text="@新北市DM")
                 ),
                 QuickReplyButton(
-                    action=MessageAction(label="短片宣導", text="@短片宣導")
+                    action=MessageAction(label="主計總處DM", text="@主計總處DM")
+                ),
+                QuickReplyButton(
+                    action=MessageAction(label="主計總處短片", text="@主計總處短片")
                 )
             ]
             
@@ -252,20 +255,51 @@ def handle_message(event):
             # 使用 reply_message 回覆選單
             line_bot_api.reply_message(event.reply_token, message)
         
-        # 處理使用者選擇 DM宣導 或 短片宣導
-        elif "@dm宣導" in user_message:
-            logging.info("使用者選擇 DM 宣導")
+        elif "@主計總處dm" in user_message:
+            logging.info("使用者選擇 主計總處DM")
             
-            # 傳送 DM 宣導的圖片
-            image_message1 = ImageSendMessage(
+            # 傳送 主計總處DM 的圖片
+            image_message = ImageSendMessage(
                 original_content_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
                 preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
             )
             
-            line_bot_api.reply_message(event.reply_token, image_message1)
+            line_bot_api.reply_message(event.reply_token, image_message)
         
-        elif "@短片宣導" in user_message:
-            logging.info("使用者選擇 短片宣導")
+        # 處理使用者選擇新北市DM
+        elif "@新北市dm" in user_message:
+            logging.info("使用者選擇 新北市DM")
+            
+            # 傳送 新北市DM 的圖片1
+            image_message1 = ImageSendMessage(
+                original_content_url="https://drive.google.com/uc?export=view&id=1C9UHG4gTuKGv-Ka3Z8Sa-cimC04-7KYE",
+                preview_image_url="https://drive.google.com/uc?export=view&id=1C9UHG4gTuKGv-Ka3Z8Sa-cimC04-7KYE"
+            )
+            # 傳送 新北市DM 的圖片2
+            image_message2 = ImageSendMessage(
+                original_content_url="https://drive.google.com/uc?export=view&id=1U1p0taiC1ldLGGHzttmq4TGGYQAyfDsG",
+                preview_image_url="https://drive.google.com/uc?export=view&id=1U1p0taiC1ldLGGHzttmq4TGGYQAyfDsG"
+            )
+            
+            # line_bot_api.reply_message(event.reply_token, image_message1)
+            result_message = [TextSendMessage(text="新北市DM如下："), image_message1, image_message2]  # 這裡是多個訊息，應該用列表
+            line_bot_api.reply_message(event.reply_token, result_message)
+        
+        # 處理使用者選擇主計總處DM
+        elif "@主計總處dm" in user_message:
+            logging.info("使用者選擇 主計總處DM")
+            
+            # 傳送 主計總處DM 的圖片
+            image_message = ImageSendMessage(
+                original_content_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
+                preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
+            )
+            
+            line_bot_api.reply_message(event.reply_token, image_message)
+        
+        # 處理使用者選擇短片宣導
+        elif "@主計總處短片" in user_message:
+            logging.info("使用者選擇 主計總處短片")
             
             # 傳送短片宣導的影片
             video_message = VideoSendMessage(
