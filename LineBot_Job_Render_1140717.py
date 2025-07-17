@@ -294,8 +294,10 @@ def handle_message(event):
                 original_content_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
                 preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
             )
-            
-            line_bot_api.reply_message(event.reply_token, image_message)
+                        
+            # line_bot_api.reply_message(event.reply_token, image_message)
+            result_message = [TextSendMessage(text="主計總處DM如下："), image_message]
+            line_bot_api.reply_message(event.reply_token, result_message)
         
         # 處理使用者選擇短片宣導
         elif "@主計總處短片" in user_message:
@@ -307,8 +309,9 @@ def handle_message(event):
                 preview_image_url="https://drive.google.com/uc?export=view&id=1Z5HwsY-nrzu6Fn6_CcEsDsIrYVhylQQf"  # 預覽圖片 URL
             )
             
-            line_bot_api.reply_message(event.reply_token, video_message)
-
+            # line_bot_api.reply_message(event.reply_token, video_message)
+            result_message = [TextSendMessage(text="主計總處短片如下："), video_message]
+            line_bot_api.reply_message(event.reply_token, result_message)
 
         else:
             result_message = TextSendMessage(text="您好，本服務是由系統自動回應，請點擊下方服務快捷鍵取得所需資訊！")  # 預設回應
