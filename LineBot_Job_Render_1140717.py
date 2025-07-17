@@ -255,17 +255,6 @@ def handle_message(event):
             # 使用 reply_message 回覆選單
             line_bot_api.reply_message(event.reply_token, message)
         
-        elif "@主計總處dm" in user_message:
-            logging.info("使用者選擇 主計總處DM")
-            
-            # 傳送 主計總處DM 的圖片
-            image_message = ImageSendMessage(
-                original_content_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ",
-                preview_image_url="https://drive.google.com/uc?export=view&id=1WuWb4CVkn1cIHBiD83Jp0bMzIRHlZIZZ"
-            )
-            
-            line_bot_api.reply_message(event.reply_token, image_message)
-        
         # 處理使用者選擇新北市DM
         elif "@新北市dm" in user_message:
             logging.info("使用者選擇 新北市DM")
