@@ -116,6 +116,9 @@ def fetch_job_events(min_events=10): #至少抓取10筆才停止
         #     except Exception as e:
         #         print(f"無法點擊下個月按鈕或已無更多月份：{e}")
         #         break  # 無法點擊時跳出迴圈
+        
+        # ✅ 若抓到 ≥10 筆 → 只顯示前 10 筆
+        # ✅ 若最多只能抓到 <10 筆 → 就顯示全部（例如 7 筆）
         while True:
             new_events = scrape_events(current_index)
             if not new_events:
@@ -343,7 +346,8 @@ def process_request(user_id, user_message):
         if "@徵才活動" in user_message:
             events = fetch_job_events()
             if events:
-                reply_message = "以下是最近10場徵才活動資訊：\n" + "\n\n".join(
+                # reply_message = "以下是最近10場徵才活動資訊：\n" + "\n\n".join(
+                reply_message = "以下是近期徵才活動資訊：\n" + "\n\n".join(
                     [f"{event['index']}. {event['name']}\n詳細資訊：{event['link']}" for event in events[:10]]
                 )
             else:
