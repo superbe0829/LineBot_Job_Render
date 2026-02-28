@@ -144,7 +144,9 @@ def fetch_job_events(min_events=10): #至少抓取10筆才停止
         formatted_events = formatted_events[:min_events]
 
     except Exception as e:
-        print(f"抓取資料時發生錯誤：{e}")
+        # print(f"抓取資料時發生錯誤：{e}")
+        logging.info(f"抓取資料時發生錯誤：{e}")
+        
     finally:
         driver.quit()
 
