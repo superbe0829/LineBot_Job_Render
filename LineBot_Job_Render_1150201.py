@@ -151,6 +151,7 @@ def fetch_job_events(min_events=10): #至少抓取10筆才停止
     
 # 爬取服務據點清單（使用Request）
 def fetch_service_locations():
+    print('進入fetch_service_locations函式…')
     base_url = "https://ilabor.ntpc.gov.tw"
     url = f"{base_url}/browse/employment-service/employment-service-branch"
     
