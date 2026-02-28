@@ -62,8 +62,9 @@ line_handler = WebhookHandler(LINE_CHANNEL_SECRET)
 # 爬取最新徵才活動資料（使用 headless Selenium，瀏覽器在背景執行）
 # def fetch_job_events():
 def fetch_job_events(min_events=10): #至少抓取10筆才停止
-    print('進入fetch_job_events函式…')
-        
+    # print('進入fetch_job_events函式…')
+    logging.info('進入fetch_job_events函式…')    
+    
     # # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
     # service = ChromeService(ChromeDriverManager().install()) 
     # driver = webdriver.Chrome(service=service, options=options)
@@ -151,7 +152,9 @@ def fetch_job_events(min_events=10): #至少抓取10筆才停止
     
 # 爬取服務據點清單（使用Request）
 def fetch_service_locations():
-    print('進入fetch_service_locations函式…')
+    # print('進入fetch_service_locations函式…')
+    logging.info('進入fetch_service_locations函式…')
+    
     base_url = "https://ilabor.ntpc.gov.tw"
     url = f"{base_url}/browse/employment-service/employment-service-branch"
     
