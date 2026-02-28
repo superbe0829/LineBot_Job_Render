@@ -65,90 +65,112 @@ def fetch_job_events(min_events=10): #至少抓取10筆才停止
     # print('進入fetch_job_events函式…')
     logging.info('進入fetch_job_events函式…')    
     
-    # # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-    # service = ChromeService(ChromeDriverManager().install()) 
-    # driver = webdriver.Chrome(service=service, options=options)
     driver = webdriver.Chrome(options=options)
     driver.set_page_load_timeout(90)
-    
     driver.implicitly_wait(10)
     url = "https://ilabor.ntpc.gov.tw/cloud/GoodJob/activities"
       
     formatted_events = []
     current_index = 1  # 初始化編號
     
-    try:
-        # 開啟目標網頁
-        driver.get(url)
+    # 開啟目標網頁
+    driver.get(url)
 
-        # 定義函式來抓取單個月的活動資料
-        def scrape_events(start_index):
-            events = driver.find_elements(By.CLASS_NAME, "event-item")
-            month_events = []
-            for idx, event in enumerate(events, start=start_index):
-                try:
-                    name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
-                    link = event.get_attribute("href")
-                    month_events.append({
-                        "index": idx,
-                        "name": name,
-                        "link": link,
-                    })
-                except Exception as e:
-                    print(f"處理事件時發生錯誤：{e}")
-            return month_events
-
-        # # 不斷抓取資料直到達到所需筆數
-        # while len(formatted_events) < min_events:
-        #     # 抓取目前月份的資料
-        #     new_events = scrape_events(current_index)
-        #     formatted_events.extend(new_events)
-        #     current_index += len(new_events)
-
-        #     # 如果目前抓取的資料已滿足需求，停止抓取
-        #     if len(formatted_events) >= min_events:
-        #         break
-
-        #     # 嘗試點擊「下個月」按鈕
-        #     try:
-        #         next_button = driver.find_element(By.CLASS_NAME, "clndr-next-button")
-        #         next_button.click()
-        #         time.sleep(2)  # 等待頁面更新
-        #     except Exception as e:
-        #         print(f"無法點擊下個月按鈕或已無更多月份：{e}")
-        #         break  # 無法點擊時跳出迴圈
-        
-        # ✅ 若抓到 ≥10 筆 → 只顯示前 10 筆
-        # ✅ 若最多只能抓到 <10 筆 → 就顯示全部（例如 7 筆）
-        while True:
-            new_events = scrape_events(current_index)
-            if not new_events:
-                break
-        
-            formatted_events.extend(new_events)
-            current_index += len(new_events)
-        
-            # 已經抓夠就結束
-            if len(formatted_events) >= min_events:
-                break
-        
-            # 嘗試點下一個月（點不到就自然結束）
+    # 定義函式來抓取單個月的活動資料
+    def scrape_events(start_index):
+        events = driver.find_elements(By.CLASS_NAME, "event-item")
+        month_events = []
+        for idx, event in enumerate(events, start=start_index):
             try:
-                next_button = driver.find_element(By.CLASS_NAME, "clndr-next-button")
-                next_button.click()
-                time.sleep(2)
-            except Exception:
-                break
-        
-        # ✅ 關鍵：最後再裁切
-        formatted_events = formatted_events[:min_events]
+                name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
+                link = event.get_attribute("href")
+                month_events.append({
+                    "index": idx,
+                    "name": name,
+                    "link": link,
+                })
+            except Exception as e:
+                # print(f"處理事件時發生錯誤：{e}")
+                logging.info(f"處理事件時發生錯誤：{e}")
+        return month_events
 
-    except Exception as e:
-        # print(f"抓取資料時發生錯誤：{e}")
-        logging.info(f"抓取資料時發生錯誤：{e}")
+    # ✅ 若抓到 ≥10 筆 → 只顯示前 10 筆
+    # ✅ 若最多只能抓到 <10 筆 → 就顯示全部（例如 7 筆）
+    while True:
+        new_events = scrape_events(current_index)
+        if not new_events:
+            break
+    
+        formatted_events.extend(new_events)
+        current_index += len(new_events)
+    
+        # 已經抓夠就結束
+        if len(formatted_events) >= min_events:
+            break
+    
+        # 嘗試點下一個月（點不到就自然結束）
+        try:
+            next_button = driver.find_element(By.CLASS_NAME, "clndr-next-button")
+            next_button.click()
+            time.sleep(2)
+        except Exception:
+            break
+    
+    # ✅ 關鍵：最後再裁切
+    formatted_events = formatted_events[:min_events]
+    
+    # try:
+    #     # 開啟目標網頁
+    #     driver.get(url)
+
+    #     # 定義函式來抓取單個月的活動資料
+    #     def scrape_events(start_index):
+    #         events = driver.find_elements(By.CLASS_NAME, "event-item")
+    #         month_events = []
+    #         for idx, event in enumerate(events, start=start_index):
+    #             try:
+    #                 name = event.find_element(By.CLASS_NAME, "event-item-name").text.strip()
+    #                 link = event.get_attribute("href")
+    #                 month_events.append({
+    #                     "index": idx,
+    #                     "name": name,
+    #                     "link": link,
+    #                 })
+    #             except Exception as e:
+    #                 print(f"處理事件時發生錯誤：{e}")
+    #         return month_events
+
+    #     # ✅ 若抓到 ≥10 筆 → 只顯示前 10 筆
+    #     # ✅ 若最多只能抓到 <10 筆 → 就顯示全部（例如 7 筆）
+    #     while True:
+    #         new_events = scrape_events(current_index)
+    #         if not new_events:
+    #             break
         
-    finally:
-        driver.quit()
+    #         formatted_events.extend(new_events)
+    #         current_index += len(new_events)
+        
+    #         # 已經抓夠就結束
+    #         if len(formatted_events) >= min_events:
+    #             break
+        
+    #         # 嘗試點下一個月（點不到就自然結束）
+    #         try:
+    #             next_button = driver.find_element(By.CLASS_NAME, "clndr-next-button")
+    #             next_button.click()
+    #             time.sleep(2)
+    #         except Exception:
+    #             break
+        
+    #     # ✅ 關鍵：最後再裁切
+    #     formatted_events = formatted_events[:min_events]
+
+    # except Exception as e:
+    #     # print(f"抓取資料時發生錯誤：{e}")
+    #     logging.info(f"抓取資料時發生錯誤：{e}")
+        
+    # finally:
+    #     driver.quit()
 
     return formatted_events
     
