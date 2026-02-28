@@ -222,39 +222,39 @@ def fetch_service_locations():
         print(f"發生錯誤：{e}")
         return []
 
-# @app.route('/callback', methods=['GET', 'POST', 'HEAD'])
-# def callback():
-#     if request.method == 'HEAD':
-#         # 返回空的 200 OK 回應（回應UptimeRobot每5分鐘的請求）
-#         return '', 200
-#     elif request.method == 'GET':
-#         return 'OK', 300
-#     elif request.method == 'POST':
-#         # 處理 Line Bot 的訊息
-#         body = request.get_data(as_text=True)
-#         signature = request.headers.get('X-Line-Signature', '')
-#         line_handler.handle(body, signature)
-#         return 'OK', 400
-
 @app.route('/callback', methods=['GET', 'POST', 'HEAD'])
 def callback():
     if request.method == 'HEAD':
+        # 返回空的 200 OK 回應（回應UptimeRobot每5分鐘的請求）
         return '', 200
-
     elif request.method == 'GET':
-        return 'OK', 200   # 300 也建議改 200
-
+        return 'OK', 300
     elif request.method == 'POST':
+        # 處理 Line Bot 的訊息
         body = request.get_data(as_text=True)
         signature = request.headers.get('X-Line-Signature', '')
+        line_handler.handle(body, signature)
+        return 'OK', 400
 
-        try:
-            line_handler.handle(body, signature)
-        except Exception as e:
-            app.logger.error(f"Webhook error: {e}")
-            return 'OK', 200   # ❗不要回 400
+# @app.route('/callback', methods=['GET', 'POST', 'HEAD'])
+# def callback():
+#     if request.method == 'HEAD':
+#         return '', 200
 
-        return 'OK', 200   # ← 改這裡
+#     elif request.method == 'GET':
+#         return 'OK', 200   # 300 也建議改 200
+
+#     elif request.method == 'POST':
+#         body = request.get_data(as_text=True)
+#         signature = request.headers.get('X-Line-Signature', '')
+
+#         try:
+#             line_handler.handle(body, signature)
+#         except Exception as e:
+#             app.logger.error(f"Webhook error: {e}")
+#             return 'OK', 200   # ❗不要回 400
+
+#         return 'OK', 200   # ← 改這裡
 
 # 處理 Line 訊息
 @line_handler.add(MessageEvent, message=TextMessage)
